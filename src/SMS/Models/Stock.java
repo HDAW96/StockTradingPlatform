@@ -1,9 +1,13 @@
+package SMS;
+
 public class Stock {
-    private String name;
-    private double stockPrice ;
-    private int stockAmount;
-    private static int nextSID = 1;
-    private int SID;
+
+    protected String name;
+    protected double stockPrice ;
+    protected int stockAmount;
+    protected static int nextSID = 1;
+    protected int SID;
+
     public Stock(String name, double stockPrice, int stockAmount){
         this.name = name;
         this.stockPrice = stockPrice;

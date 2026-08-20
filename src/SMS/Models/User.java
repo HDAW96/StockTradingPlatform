@@ -1,12 +1,14 @@
+package SMS;
+
 import java.util.ArrayList;
 
 public class User {
-    private static int nextID = 1;
-    private int id;
-    private double balance;
-    private String username;
-    private String password;
-    private ArrayList<Stock> stocks;
+    protected static int nextID = 1;
+    protected int id;
+    protected double balance;
+    protected String username;
+    protected String password;
+    protected ArrayList<Stock> stocks;
 
     public User(double balance, String username, String password, ArrayList<Stock> stocks){
         this.balance = balance;
