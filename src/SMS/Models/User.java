@@ -1,8 +1,9 @@
-package SMS;
+package SMS.Models;
 
 import java.util.ArrayList;
 
 public class User {
+
     protected static int nextID = 1;
     protected int id;
     protected double balance;

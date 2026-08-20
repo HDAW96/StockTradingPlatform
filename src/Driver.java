@@ -1,36 +1,47 @@
-import SMS.Stock;
-import SMS.User;
+//Importing Models from SMS.Models Package
+import SMS.Models.Stock;
+import SMS.Models.User;
 
+//Importing File Reading & Writing,IOException, w/ ArrayList and Scanner
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
-void main(){
+
+ void main(){
 
     Scanner scan = new Scanner(System.in);
 
     // Variables of 2 program phases, w/ SID and Amount
     int input = 0,  mInput = 0, s = 0, am = 0;
-    //Login + SMS.Stock variables
-    boolean correctCredentials = false, exists = false,  stockExists = false;
 
-    // SMS.User and SMS.Stock Array Lists
+    //Login + Stock variables
+    boolean correctCredentials = false, exists = false,  stockExists = false, validUsername = false, validPassword = false;
+
+    // SMS.Models.User and SMS.Models.Stock Array Lists
     ArrayList<User> users = new ArrayList<User>();
     ArrayList<Stock> stock1 = new ArrayList<Stock>();
+    String userFilePath = "Users.txt";
 
 
-    User hadi = new User(10000,"HD88","Hadi@1234",stock1);
+
+    //Test User
+//    User hadi = new User(15430,"HD88","Hadi@1234",stock1);
     User currentUser = new User();
-    users.add(hadi);
+//    users.add(hadi);
 
 
     String uUserName;
     String uPassWord;
-
+    double startingBalance = 15000;
 
     String loginUsername = "";
     String loginPassword = "";
 
-    //Dummy SMS.Stock Data
+    //Dummy SMS.Models.Stock Data
     ArrayList<Stock> allStocks = new ArrayList<Stock>();
 
 
@@ -47,6 +58,75 @@ void main(){
     allStocks.add(nvidia);
     allStocks.add(microsoft);
 
+ try(FileWriter writer = new FileWriter("Market.txt")){
+
+     for (Stock allStock : allStocks) {
+         writer.write(allStock.getName() + "," + allStock.getStockPrice() + "," + allStock.getStockAmount() + "," + allStock.getSID() + System.lineSeparator());
+     }
+
+     writer.flush();
+
+ } catch (Exception e) {
+     throw new RuntimeException(e);
+ }
+
+// try(BufferedReader br = new BufferedReader(new FileReader("UserPortfolios.txt")))
+// {
+//     String line;
+//
+//     while ((line = br.readLine()) != null)
+//     {
+//         String []data = line.split(",");
+//
+//         if(data.length == 4){
+//
+//             String username = data[0];
+//             String stockName = data[1];
+//             double stockPrice = Double.parseDouble(data[2]);
+//             int stockAmount = Integer.parseInt(data[3]);
+//             Stock userStock = new Stock();
+//             if(username.equals(currentUser.getUsername())) {
+//                 userStock = new Stock(stockName, stockPrice, stockAmount);
+//                 currentUser.getStocks().add(userStock);
+//             }
+//
+//
+//         }
+//     }
+// } catch (Exception e) {
+//     throw new RuntimeException(e);
+// }
+
+
+     try (BufferedReader br = new BufferedReader(new FileReader(userFilePath)))
+     {
+         String line;
+
+         while((line = br.readLine()) != null){
+             String [] data  = line.split(",");
+             if(data.length == 3){
+                 String username = data[0];
+                 String password = data[1];
+                 double balance;
+                 balance = Double.parseDouble(data[2]);
+
+
+                 users.add(new User(balance,username,password, new ArrayList<Stock>()));
+
+             }
+
+         }
+
+     }
+     catch (IOException e)
+     {
+         System.out.println("An error has occurred: "+e);
+     }
+     catch (NumberFormatException e)
+     {
+         System.out.println("Error in balance." + e);
+     }
+
 
         while (input == 0) {
 
@@ -60,7 +140,7 @@ void main(){
 
 
                 if (input == 3) {
-                    System.out.println("👋Goodbye!");
+                    System.out.println("\n👋Goodbye!\n");
                     break;
                 }
 
@@ -86,11 +166,12 @@ void main(){
 
                         System.out.println("Username cannot contain spaces and / or less than 3 characters.");
                         uUserName = "";
+                        validUsername = false;
 
                     } else {
 
                         uUserName = newUsername;
-
+                        validUsername = true;
                     }
 
                     //Checking Upper and Lower case letters in the new password:
@@ -125,12 +206,13 @@ void main(){
                         System.out.println("Password didn't follow the guidelines.");
                         uPassWord = "";
                         input = 0;
-
+                        validPassword = false;
                     }
                     else {
 
                         uPassWord = newPassword;
                         input = 0;
+                        validPassword = true;
 
                     }
 
@@ -143,17 +225,15 @@ void main(){
                         }
 
                     }
-                    if (!exists) {
+                    if (!exists && validUsername && validPassword) {
 
-                        System.out.println("✅SMS.User registered successfully!");
-                        User user = new User(10000, uUserName, uPassWord, stocks);
-                        users.add(user);
-                        input = 0;
+                            User user = new User(startingBalance, uUserName, uPassWord, stocks);
+                            users.add(user);
+                            System.out.println("✅User registered successfully!");
+                            input = 0;
 
                     } else {
-
-                        System.out.println("❌SMS.User already exists.");
-
+                        System.out.println("❌User not added.");
                     }
 
                     exists = false;
@@ -186,10 +266,9 @@ void main(){
 
             for (int i = 0; i < users.size(); i++) {
 
-                if (loginUsername.equals(users.get(i).getUsername()) && loginPassword.equals(users.get(i).getPassword())) {
-
-
-                   currentUser  = users.get(i);
+                if (loginUsername.equals(users.get(i).getUsername()) && loginPassword.equals(users.get(i).getPassword()))
+                {
+                    currentUser  = users.get(i);
                     correctCredentials = true;
                     break;
 
@@ -198,25 +277,73 @@ void main(){
                 else correctCredentials = false;
 
             }
-            if (correctCredentials) {
+            if (correctCredentials)
+            {
 
                 System.out.println("\n\n✅Login Successful!");
                 input = 4;
 
-            } else {
-
+            } else
+            {
 //              System.out.println("Login Failed!");
                 input = 0;
 
             }
 
-            while (input == 4) {
+            try(BufferedReader br = new BufferedReader(new FileReader("UserPortfolios.txt")))
+            {
+                String line;
+                while ((line = br.readLine()) != null)
+                {
+                    String []data = line.split(",");
 
-                System.out.println("\n\n==============================\n📈STOCK MARKET SIMULATOR📉\n==============================");
+                    if(data.length == 4){
+
+                        String username = data[0];
+                        String stockName = data[1];
+                        double stockPrice = Double.parseDouble(data[2]);
+                        int stockAmount = Integer.parseInt(data[3]);
+                        Stock userStock = new Stock();
+                        if(username.equals(currentUser.getUsername())) {
+                            userStock = new Stock(stockName, stockPrice, stockAmount);
+                            currentUser.getStocks().add(userStock);
+                        }
+
+
+                    }
+                }
+
+            }
+            catch (IOException e)
+            {
+                System.out.println("An error has occurred: " + e);
+            }
+//            try (FileWriter writer = new FileWriter("UserPortfolios.txt",true))
+//            {
+//
+//                for(int i = 0; i < currentUser.getStocks().size(); i++) {
+//
+//                    writer.write(currentUser.getUsername() + "," + currentUser.getStocks().get(i).getName() + "," +
+//                            currentUser.getStocks().get(i).getStockPrice() + "," +
+//                            currentUser.getStocks().get(i).getStockAmount() +
+//                            System.lineSeparator());
+//                }
+//
+//                writer.flush();
+//
+//            }
+//            catch (IOException e)
+//            {
+//                System.out.println("An error has occurred: " + e);
+//            }
+            while (input == 4)
+            {
+
+                System.out.println("\n\n=================================\n   📈STOCK MARKET SIMULATOR📉\n=================================");
                 System.out.println("👋Welcome!, " + currentUser.getUsername());
                 System.out.println("💰Current Balance: " + currentUser.getBalance() + "$");
-                System.out.println("==============================\n\n");
-                System.out.println("1. 📊VIEW MARKET\n2. 📂VIEW PORTFOLIO\n3. 💵DEPOSIT MONEY\n4. 🔃REFRESH MARKET\n5. 🚪LOGOUT\n\n");
+                System.out.println("=================================\n\n");
+                System.out.println("1. 📊VIEW MARKET\n2. 📂VIEW PORTFOLIO\n3. 💵DEPOSIT MONEY\n4. 🚪LOGOUT\n\n");
 
                 try {
 
@@ -224,21 +351,24 @@ void main(){
                     mInput = scan.nextInt();
 
                 }
-                catch (InputMismatchException e){
+                catch (InputMismatchException e)
+                {
 
                     System.out.println("Enter the input as a number.");
                     scan.next();
                     continue;
 
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
 
                     System.out.println("❗❗An error has occurred.❗❗");
                     scan.next();
                     continue;
 
                 }
-                if (mInput == 5) {
+                if (mInput == 4)
+                {
 
                     System.out.println("Logging Out...");
                     input = 0;
@@ -251,10 +381,14 @@ void main(){
 
                 }
 
+
+
+
                 double depositAmount;
 
                 try{
-                if (mInput == 3) {
+                if (mInput == 3)
+                {
 
                     System.out.println("💰Current Balance: "+ currentUser.getBalance()+ "$\n💵Enter the amount of $$$ you want to add to your balance: ");
                     depositAmount = scan.nextDouble();
@@ -262,10 +396,8 @@ void main(){
                     if(depositAmount < 0)
                         System.out.println("❌Cannot add negative amount.");
                     else {
-
                         currentUser.setBalance(currentUser.getBalance() + depositAmount);
                         System.out.println("✅You've added " + depositAmount + "$\n💰Your balance is now " + currentUser.getBalance()+"$.");
-
                     }
                 }
                 }
@@ -283,13 +415,14 @@ void main(){
                     continue;
 
                 }
-                while (mInput == 1) {
+                while (mInput == 1)
+                {
 
                     System.out.println("\n📊 MARKET OVERVIEW");
                     System.out.println("---------------------------------------------");
                     System.out.printf(
                             "%-15s %-12s %-10s %-5s%n",
-                            "SMS.Stock",
+                            "Stock",
                             "Price",
                             "Available",
                             "ID"
@@ -297,14 +430,15 @@ void main(){
 
                     System.out.println("---------------------------------------------");
 
-                    for (int i = 0; i < allStocks.size(); i++) {
+                    for (int i = 0; i < allStocks.size(); i++)
+                    {
 
                         allStocks.get(i).print();
 
                     }
                     System.out.println("---------------------------------------------");
 
-                    System.out.println("1. 🛒Buy SMS.Stock\n2. ↩Return\n");
+                    System.out.println("1. 🛒Buy Stock\n2. ↩Return\n");
 
 
 
@@ -312,43 +446,66 @@ void main(){
 
                         int viewInput = scan.nextInt();
 
-                    if (viewInput == 1) {
+                    if (viewInput == 1)
+                    {
 
-                        System.out.print("\n\n🎯Enter the SMS.Stock ID: ");
+                        System.out.print("\n\n🎯Enter the Stock ID: ");
                         s = scan.nextInt();
 
                         System.out.print("📦Enter the quantity: ");
                         am = scan.nextInt();
 
                         stockExists = false;
+                        boolean sameStock = false;
 
-                        for (int i = 0; i < allStocks.size() ; i++) {
+                        for (int i = 0; i < allStocks.size() ; i++)
+                        {
 
 
 
-                            if(s == allStocks.get(i).getSID() && am <= allStocks.get(i).getStockAmount() && am >=0){
+                            if(s == allStocks.get(i).getSID() && am <= allStocks.get(i).getStockAmount() && am >=0)
+                            {
 
                                 stockExists = true;
                                 Stock st = new Stock(allStocks.get(i).getName(),allStocks.get(i).getStockPrice(),am);
 
-                                if(currentUser.getBalance() >= (allStocks.get(i).getStockPrice() * am) ) {
+                                if(currentUser.getBalance() >= (allStocks.get(i).getStockPrice() * am) )
+                                {
 
+                                    for(int j = 0; j < currentUser.getStocks().size(); j++)
+                                    {
+                                        if (currentUser.getStocks().get(j).getName().equals(st.getName())) {
+                                            currentUser.getStocks().get(j).setStockAmount(currentUser.getStocks().get(j).getStockAmount() + am);
+                                            sameStock = true;
+                                            break;
+                                        }
+
+                                    }
                                     allStocks.get(i).setStockAmount(allStocks.get(i).getStockAmount() - am);
-                                    currentUser.getStocks().add(st);
+                                    if (!sameStock)
+                                    {
+                                        currentUser.getStocks().add(st);
+                                    }
+
+                                    //Deducting
                                     currentUser.setBalance(currentUser.getBalance() - (st.getStockPrice() * am));
+
+
                                     System.out.println("✅You bought " + am + " of " + st.getName() + ".\nYour balance is now: " + currentUser.getBalance() + "$");
                                     System.out.println("❕❕There are " + allStocks.get(i).getStockAmount() + " left of " +allStocks.get(i).getName() + "❕❕");
                                         break;
 
                                 }
                             }
-                            if(s == allStocks.get(i).getSID() && am > allStocks.get(i).getStockAmount() && stockExists || am < 0){
+                            if(s == allStocks.get(i).getSID() && am > allStocks.get(i).getStockAmount() && stockExists || am < 0)
+                            {
 
                                 System.out.println("❌Quantity entered not available.");
                                 break;
 
                             }
-                            if(s == allStocks.get(i).getSID() && am <=  allStocks.get(i).getStockAmount() && currentUser.getBalance() < (allStocks.get(i).getStockPrice() * am)){
+                            if(s == allStocks.get(i).getSID() && am <=  allStocks.get(i).getStockAmount() && currentUser.getBalance() < (allStocks.get(i).getStockPrice() * am))
+                            {
 
                                 System.out.println("❌Insufficient Funds.");
                                 break;
@@ -356,6 +513,8 @@ void main(){
                             }
 
                         }
+
+
 
                          if(!stockExists) {
 
@@ -384,7 +543,88 @@ void main(){
                     }
                 }
 
+
+                while (mInput == 2){
+                    try {
+
+
+                        double totalPortfolioSum = 0;
+
+                        System.out.println("\n\n📂YOUR PORTFOLIO:\n====================================\n\n👋Welcome, " + currentUser.getUsername() + "\n💰Current Balance: " + currentUser.getBalance() + "$\n\n");
+                        System.out.println("------------------------------------------------\n");
+                        System.out.printf("%-15s %-12s %-10s %-12s%n", "Stock", "Price", "Amount", "Subtotal");
+                        System.out.println("------------------------------------------------\n");
+
+                        for (int i = 0; i < currentUser.getStocks().size(); i++) {
+
+                            double subtotal = currentUser.getStocks().get(i).getStockPrice() *
+                                    currentUser.getStocks().get(i).getStockAmount();
+
+                            totalPortfolioSum += subtotal;
+
+                            System.out.printf("%-15s $%-12.2f %-10d $%-12.2f%n",
+                                    currentUser.getStocks().get(i).getName(),
+                                    currentUser.getStocks().get(i).getStockPrice(),
+                                    currentUser.getStocks().get(i).getStockAmount(),
+                                    subtotal);
+                        }
+                        System.out.println("------------------------------------------------\n");
+                        System.out.printf("📊Portfolio Value: %.2f$\n", totalPortfolioSum);
+//                        System.out.printf("💰Current Balance: %.2f$\n", currentUser.getBalance());
+                        System.out.printf("💼Total Account Value: %.2f$\n", totalPortfolioSum + currentUser.getBalance());
+                        System.out.println("================================================\n\n");
+
+                        System.out.print("Type in any number to ↩Return:");
+                        int r = scan.nextInt();
+                        if (r == 1) {
+
+                            break;
+
+                        } else {
+
+                            break;
+
+                        }
+
+                    } catch (InputMismatchException e) {
+
+                        System.out.println("Enter an integer.");
+                        scan.next();
+                        continue;
+
+                    } catch (Exception e) {
+
+                        System.out.println("❗❗An error has occurred.❗❗");
+                        scan.next();
+                        continue;
+
+                    }
+
+                }
+
             }
 
         }
+        try(FileWriter writer = new FileWriter("Users.txt")){
+
+            for(int i = 0 ; i < users.size(); i++){
+                writer.write(users.get(i).getUsername() + "," + users.get(i).getPassword() + "," + users.get(i).getBalance()+System.lineSeparator());
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        try(FileWriter writer = new FileWriter("UserPortfolios.txt",true)){
+
+            for(int i = 0; i< users.size(); i++){
+             for(int j = 0; j < users.get(i).getStocks().size();j++){
+                 writer.write(users.get(i).getUsername() + "," + users.get(i).getStocks().get(j).getName() + "," + users.get(i).getStocks().get(j).getStockPrice() + "," + users.get(i).getStocks().get(j).getStockAmount() + System.lineSeparator());
+             }
+            }
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }

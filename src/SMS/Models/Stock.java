@@ -1,4 +1,4 @@
-package SMS;
+package SMS.Models;
 
 public class Stock {
 
@@ -15,6 +15,7 @@ public class Stock {
         this.SID = nextSID;
         nextSID++;
     }
+    public Stock(){};
 
     public String getName() {
         return name;
